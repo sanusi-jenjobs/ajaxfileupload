@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+	<head>
+		<title>AJAX file upload</title>
+	</head>
+	<body>
+		<div>
+			<form action="upload.php" method="post" id="upload-form" enctype="multipart/form-data">
+				<input type="file" id="the-file" />
+				<button type="submit" disabled="disabled">Upload</button>
+			</form>
+		</div>
+		
+		<script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+		<script type="text/javascript">
+		jQuery(function($){
+			var reader = new FileReader(),
+			uploadForm = $('#upload-form'),
+			uploadFormButton = uploadForm.find('button[type=submit]'),
+			data = {};
+			
+			$('#the-file').change(function(e){
+				file = e.target.files[0];
+				reader.readAsDataURL(file);
+				
+				data.file_name = file.name;
+				data.file_size = file.size;
+				data.file_type = file.type;
+			});
+			
+			reader.onload = function(e){
+				uploadFormButton.removeAttr('disabled');
+				data.base64Str = e.target.result.split(/,/)[1];
+			}
+			
+			uploadForm.submit(function(){
+				$.post(uploadForm.attr('action'), data, function(resp){
+					// handle response
+				});
+				return false;
+			});
+		});
+		</script>
+	</body>
+</html>
