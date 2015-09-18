@@ -30,7 +30,7 @@
 			
 			reader.onload = function(e){
 				uploadFormButton.removeAttr('disabled');
-				data.base64Str = e.target.result.split(/,/)[1];
+				data.base64Str = e.target.result.split(/,/)[1]; // get the second argument
 			}
 			
 			uploadForm.submit(function(){
