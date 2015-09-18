@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+	<head>
+		<title>AJAX file upload</title>
+	</head>
+	<body>
+		<div>
+			<form action="upload_to_png.php" method="post" id="upload-form" enctype="multipart/form-data">
+				<div id="temp_container"></div>
+				<input type="file" id="the-file" />
+				<button type="submit" disabled="disabled">Upload</button>
+			</form>
+		</div>
+		
+		<script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+		<script type="text/javascript">
+		jQuery(function($){
+			var reader = new FileReader(),
+			uploadForm = $('#upload-form'),
+			uploadFormButton = uploadForm.find('button[type=submit]'),
+			
+			img = new Image(), // original image
+			tmp_img = new Image(), // image holder
+			
+			tmp_canvas = document.createElement('canvas'), // canvas
+			tmp_ctx = tmp_canvas.getContext('2d'), // canvas context
+			data = {}, // form data
+			max_img_width = 400,
+			max_img_height = 500;
+			
+			$('#the-file').change(function(e){
+				file = e.target.files[0];
+				reader.readAsDataURL(file);
+				
+				data.file_name = file.name;
+				data.file_size = file.size;
+				data.file_type = file.type;
+				
+				// set canvas width and height
+				tmp_canvas.width = max_img_width;
+				tmp_canvas.height = max_img_height;
+				
+				$('#temp_container').empty();
+			});
+			
+			reader.onloadend = function(e){
+				uploadFormButton.removeAttr('disabled');
+				
+				// load the image with file reader result
+				tmp_img.src = e.target.result;
+			}
+			
+			// after temp image has been loaded
+			tmp_img.onload = function(){
+				if( tmp_img.width > tmp_img.height ){
+					if( tmp_img.width > max_img_width ){
+						img.height = ( tmp_img.height / tmp_img.width ) * max_img_width;
+						img.width = tmp_canvas.width;
+						tmp_canvas.height = img.height;
+					}
+				}else if( tmp_img.width < tmp_img.height ){
+					if( tmp_img.height > max_img_height ){
+						img.width = ( tmp_img.width / tmp_img.height ) * max_img_height;
+						img.height = tmp_canvas.height;
+						tmp_canvas.width = img.width;
+						
+						/**
+						oWidth/oHeight = nWidth/nHeight
+						nWidth = oWidth/oHeight * nHeight
+						
+						oHeight/oWidth = nHeight/nWidth
+						nHeight = oHeight/oWidth * nWidth
+						*/
+					}
+				}
+				
+				img.src = tmp_img.src;
+				
+			}
+			
+			img.onload = function(){
+				
+				// draw to context
+				tmp_ctx.drawImage( img, 0, 0, tmp_canvas.width, tmp_canvas.height);
+				
+				// set the original image src using canvas data
+				data.base64Str = tmp_canvas.toDataURL();
+				
+				$('#temp_container').append(img);
+				$('#temp_container').append(tmp_canvas);
+			}
+			
+			uploadForm.submit(function(){
+				$.post(uploadForm.attr('action'), data, function(resp){
+					// handle response
+					
+					tmp_ctx.clearRect(0, 0, tmp_canvas.width, tmp_canvas.height); // clear canvas
+				});
+				return false;
+			});
+		});
+		</script>
+	</body>
+</html>
